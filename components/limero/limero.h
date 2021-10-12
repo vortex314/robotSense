@@ -693,24 +693,28 @@ Flow<T, T> &filter(std::function<bool(const T &t)> f) {
 //
 template <class IN, class OUT>
 Source<OUT> &operator>>(Source<IN> &publisher, Flow<IN, OUT> &flow) {
+  INFO("");
   publisher.subscribe(&flow);
   return flow;
 }
 
 template <class IN, class OUT>
 Source<OUT> &operator>>(Source<IN> &publisher, Flow<IN, OUT> *flow) {
+  INFO("");
   publisher.subscribe(flow);
   return *flow;
 }
 
 template <class IN, class OUT>
 Sink<IN> &operator>>(Flow<IN, OUT> &flow, Sink<OUT> &sink) {
-  ((Source<OUT>)flow).subscribe(&sink);
+  INFO("");
+  flow.subscribe(&sink);
   return flow;
 }
 
 template <class IN, class OUT1, class OUT2>
 Source<OUT2> &operator>>(Flow<IN, OUT1> &flow1, Flow<OUT1, OUT2> &flow2) {
+  INFO("");
   flow1.subscribe(&flow2);
   return flow2;
 }

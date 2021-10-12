@@ -22,7 +22,7 @@ Log logger(1024);
 // ---------------------------------------------- THREAD
 Thread thisThread("main");
 Thread ledThread("led");
-Thread mqttThread("mqtt");
+Thread spineThread("mqtt");
 ThreadProperties props = {.name = "worker",
                           .stackSize = 5000,
                           .queueSize = 20,
@@ -38,11 +38,11 @@ LambdaSource<std::string> systemHostname([]() { return Sys::hostname(); });
 LambdaSource<uint32_t> systemHeap([]() { return Sys::getFreeHeap(); });
 LambdaSource<uint64_t> systemUptime([]() { return Sys::millis(); });
 LambdaSource<bool> systemAlive([]() { return true; });
-Poller poller(mqttThread);
+Poller poller(spineThread);
 
 #include <UltraSonic.h>
 Uext uextUs(2);
-UltraSonic ultrasonic(thisThread, &uextUs);
+UltraSonic ultrasonic(workerThread, uextUs);
 
 extern "C" void app_main(void) {
 #ifdef HOSTNAME
@@ -63,14 +63,17 @@ extern "C" void app_main(void) {
   led.init();
   spine.connected >> led.blinkSlow;
   spine.connected >>
-      [&](const bool &b) { INFO(" connected : %s", b ? "true" : "false"); };
+      [&](const bool& b) { INFO(" connected : %s", b ? "true" : "false"); };
   spine.connected >> poller.connected;
   //------------------------------------------------------------------- US
   ultrasonic.init();
+  INFO("");
   ultrasonic.distance >> spine.publisher<int32_t>("us/distance");
+  INFO("");
+  ultrasonic.distance >> [&](const int32_t& v) { INFO("value:%d", v); };
 
   ledThread.start();
-  mqttThread.start();
+  spineThread.start();
   workerThread.start();
   thisThread.run();  // DON'T EXIT , local variable will be destroyed
 }

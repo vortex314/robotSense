@@ -5,9 +5,9 @@
 #include <CborSerializer.h>
 #include <Frame.h>
 #include <Hardware.h>
+#include <Log.h>
 #include <broker_protocol.h>
 #include <limero.h>
-#include <Log.h>
 
 struct PubMsg {
   std::string topic;
@@ -54,8 +54,11 @@ class SerialSpine : Actor {
     if (topic.rfind("src/", 0) == 0 || topic.rfind("dst/", 0) == 0)
       absTopic = topic;
     SinkFunction<T> *sf = new SinkFunction<T>([&, absTopic](const T &t) {
+      INFO("topic:%s", absTopic.c_str());
       if (_toCbor.begin().add(t).end().success()) {
         _outgoing.on({absTopic, _toCbor.toBytes()});
+      } else {
+        WARN(" CBOR serialization failed ");
       }
     });
     return *sf;

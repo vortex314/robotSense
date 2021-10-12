@@ -1,23 +1,31 @@
 #include "UltraSonic.h"
 
-UltraSonic::UltraSonic(Thread& thr, Uext* connector)
-    : Actor(thr), _pollTimer(thr, 1000, true) {
-  _connector = connector;
-  _hcsr = new HCSR04(*_connector);
+UltraSonic::UltraSonic(Thread& thr, Uext& connector)
+    : Actor(thr), _connector(connector), _pollTimer(thr, 100, true) {
+  _hcsr = new HCSR04(_connector);
   distance = 0;
+  distance.async(thr);
   delay = 0;
-  _pollTimer >> [&](const TimerMsg& tm) { on(tm); };
+  _pollTimer >> [&](const TimerMsg& tm) {
+    INFO("");
+    on(tm);
+  };
 }
 
 UltraSonic::~UltraSonic() { delete _hcsr; }
 
-void UltraSonic::init() { _hcsr->init(); }
+void UltraSonic::init() {
+  INFO("init");
+  _hcsr->init();
+}
 
 void UltraSonic::on(const TimerMsg& tm) {
-  int cm = _hcsr->getCentimeters();
-  if (cm < 400 && cm > 0) {
-    distance = distance() + (cm - distance()) / 2;
-    delay = delay() + (_hcsr->getTime() - delay()) / 2;
-  }
+  int mm = _hcsr->getMillimeters();
+  INFO("%d", mm);
+  distance = mm;
+  //  if (mm < 4000 && mm > 0) {
+  //    distance = distance() + (mm - distance()) / 2;
+  //    delay = delay() + (_hcsr->getTime() - delay()) / 2;
+  //  }
   _hcsr->trigger();
 }

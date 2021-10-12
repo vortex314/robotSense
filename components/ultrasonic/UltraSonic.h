@@ -8,14 +8,14 @@
 #include "HCSR04.h"
 
 class UltraSonic : public Actor {
-  Uext* _connector;
+  Uext& _connector;
   HCSR04* _hcsr;
   TimerSource _pollTimer;
 
  public:
   ValueFlow<int32_t> distance = 0;
   ValueFlow<int32_t> delay = 0;
-  UltraSonic(Thread& thr, Uext*);
+  UltraSonic(Thread& thr, Uext&);
   virtual ~UltraSonic();
   void init();
   void on(const TimerMsg&);

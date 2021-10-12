@@ -34,9 +34,9 @@ uint64_t HCSR04::getTime() {
   return _delta_usec;
 }
 
-uint32_t HCSR04::getCentimeters() {
+uint32_t HCSR04::getMillimeters() {
   float ctm = getTime();
-  ctm /= 58.0;
+  ctm /= 5.80;
   return ctm;
 }
 

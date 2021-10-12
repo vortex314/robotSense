@@ -16,7 +16,7 @@ class HCSR04 {
   HCSR04(DigitalOut&, DigitalIn&);
   int init();
   int trigger();
-  uint32_t getCentimeters();
+  uint32_t getMillimeters();
   uint64_t getTime();
   static void onEcho(void* obj);
 };
