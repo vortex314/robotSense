@@ -54,7 +54,7 @@ class SerialSpine : Actor {
     if (topic.rfind("src/", 0) == 0 || topic.rfind("dst/", 0) == 0)
       absTopic = topic;
     SinkFunction<T> *sf = new SinkFunction<T>([&, absTopic](const T &t) {
-      INFO("topic:%s", absTopic.c_str());
+      //      INFO("topic:%s", absTopic.c_str());
       if (_toCbor.begin().add(t).end().success()) {
         _outgoing.on({absTopic, _toCbor.toBytes()});
       } else {

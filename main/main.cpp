@@ -44,6 +44,12 @@ Poller poller(spineThread);
 Uext uextUs(2);
 UltraSonic ultrasonic(workerThread, uextUs);
 
+#ifdef GPS
+#include <Neo6m.h>
+Uext uext1Gps(1);
+Neo6m gps(thisThread, &uext1Gps);
+#endif
+
 extern "C" void app_main(void) {
 #ifdef HOSTNAME
   Sys::hostname(S(HOSTNAME));
@@ -67,10 +73,14 @@ extern "C" void app_main(void) {
   spine.connected >> poller.connected;
   //------------------------------------------------------------------- US
   ultrasonic.init();
-  INFO("");
   ultrasonic.distance >> spine.publisher<int32_t>("us/distance");
-  INFO("");
-  ultrasonic.distance >> [&](const int32_t& v) { INFO("value:%d", v); };
+
+#ifdef GPS
+  gps.init();  // no thread , driven from interrupt
+  gps.location >> spine.publisher<Location>("gps/latitude");
+  gps.satellitesInView >> spine.publisher<int>("gps/satellitesInView");
+  gps.satellitesInUse >> spine.publisher<int>("gps/satellitesInUse");
+#endif
 
   ledThread.start();
   spineThread.start();

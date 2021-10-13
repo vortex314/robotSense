@@ -5,5 +5,6 @@ idf_component_register(SRCS
         ../components/ultrasonic 
         ../components/limero 
         ../components/spine  
+        ../components/gps
     REQUIRES 
         "limero spine spi_flash  cbor")

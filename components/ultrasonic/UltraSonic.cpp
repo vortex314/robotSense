@@ -6,10 +6,7 @@ UltraSonic::UltraSonic(Thread& thr, Uext& connector)
   distance = 0;
   distance.async(thr);
   delay = 0;
-  _pollTimer >> [&](const TimerMsg& tm) {
-    INFO("");
-    on(tm);
-  };
+  _pollTimer >> [&](const TimerMsg& tm) { on(tm); };
 }
 
 UltraSonic::~UltraSonic() { delete _hcsr; }
@@ -21,11 +18,11 @@ void UltraSonic::init() {
 
 void UltraSonic::on(const TimerMsg& tm) {
   int mm = _hcsr->getMillimeters();
-  INFO("%d", mm);
-  distance = mm;
-  //  if (mm < 4000 && mm > 0) {
-  //    distance = distance() + (mm - distance()) / 2;
-  //    delay = delay() + (_hcsr->getTime() - delay()) / 2;
-  //  }
+  // INFO("%d", mm);
+  // distance = mm;
+  if (mm < 4000 && mm > 0) {
+    distance = distance() + (mm - distance()) / 2;
+    delay = delay() + (_hcsr->getTime() - delay()) / 2;
+  }
   _hcsr->trigger();
 }
