@@ -31,10 +31,10 @@ SerialSpine::SerialSpine(Thread &thr)
       _fromCbor(100),
       _loopbackTimer(thr, 1000, true, "loopbackTimer"),
       _connectTimer(thr, 3000, true, "connectTimer"),
-      _outgoing(10, "_outgoing"),
+      outgoing(10, "outgoing"),
       _incoming(5, "_incoming") {
   node(Sys::hostname());
-  _outgoing.async(thr);  // reduces stack need
+  outgoing.async(thr);  // reduces stack need
   _incoming.async(thr);
   connected.async(thr);
 }
@@ -42,10 +42,10 @@ SerialSpine::SerialSpine(Thread &thr)
 SerialSpine::~SerialSpine() {}
 
 void SerialSpine::node(const char *n) {
-  _node = n;
-  _srcPrefix = "src/" + _node + "/";
-  _dstPrefix = "dst/" + _node + "/";
-  _loopbackTopic = _dstPrefix + "system/loopback";
+  node = n;
+  srcPrefix = "src/" + node + "/";
+  dstPrefix = "dst/" + node + "/";
+  _loopbackTopic = dstPrefix + "system/loopback";
   connected = false;
 };
 
@@ -68,7 +68,7 @@ int SerialSpine::init() {
   _toSerialFrame >> _frameToBytes >>
       [&](const Bytes &bs) { _uart.write(bs.data(), bs.size()); };
 
-  _outgoing >> [&](const PubMsg &msg) {
+  outgoing >> [&](const PubMsg &msg) {
     if (_toCbor.begin()
             .add(B_PUBLISH)
             .add(msg.topic)
@@ -130,7 +130,7 @@ void SerialSpine::onRxd(void *me) {
 }
 
 int SerialSpine::publish(std::string topic, Bytes &bs) {
-  _outgoing.on({topic, bs});
+  outgoing.on({topic, bs});
   return 0;
 }
 

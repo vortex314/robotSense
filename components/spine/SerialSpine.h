@@ -28,17 +28,18 @@ class SerialSpine : Actor {
   CborSerializer _toCbor;
   CborDeserializer _fromCbor;
 
-  std::string _node;
-  std::string _dstPrefix;
-  std::string _srcPrefix;
   std::string _loopbackTopic;
   TimerSource _loopbackTimer;
   TimerSource _connectTimer;
-  QueueFlow<PubMsg> _outgoing;
   QueueFlow<PubMsg> _incoming;
 
  public:
+  std::string node;
+  std::string dstPrefix;
+  std::string srcPrefix;
+  QueueFlow<PubMsg> outgoing;
   ValueFlow<bool> connected;
+
   static void onRxd(void *);
   SerialSpine(Thread &thr);
   ~SerialSpine();
@@ -50,13 +51,13 @@ class SerialSpine : Actor {
 
   template <typename T>
   Sink<T> &publisher(std::string topic) {
-    std::string absTopic = _srcPrefix + topic;
+    std::string absTopic = srcPrefix + topic;
     if (topic.rfind("src/", 0) == 0 || topic.rfind("dst/", 0) == 0)
       absTopic = topic;
     SinkFunction<T> *sf = new SinkFunction<T>([&, absTopic](const T &t) {
       //      INFO("topic:%s", absTopic.c_str());
       if (_toCbor.begin().add(t).end().success()) {
-        _outgoing.on({absTopic, _toCbor.toBytes()});
+        outgoing.on({absTopic, _toCbor.toBytes()});
       } else {
         WARN(" CBOR serialization failed ");
       }
@@ -65,7 +66,7 @@ class SerialSpine : Actor {
   }
   template <typename T>
   Source<T> &subscriber(std::string topic) {
-    std::string absTopic = _dstPrefix + topic;
+    std::string absTopic = dstPrefix + topic;
     if (topic.rfind("src/", 0) == 0 || topic.rfind("dst/", 0) == 0)
       absTopic = topic;
     auto lf = new LambdaFlow<PubMsg, T>([&, absTopic](T &t, const PubMsg &msg) {
