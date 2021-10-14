@@ -52,9 +52,7 @@ void Neo6m::handleRxd() {
     char ch = _uart.read();
     if (ch == '\n' || ch == '\r') {
       if (_line.size() > 8) {
-        std::string topic = "neo6m/";
         std::string key = _line.substr(1, 5);
-        topic += key;
         if (key == "GPGLL") {
           std::vector<std::string> fields = split(_line.substr(7), ",");
           Location loc;
@@ -75,8 +73,6 @@ void Neo6m::handleRxd() {
           }
           satellitesInUse = count;
         }
-        INFO("%s:%s", topic.c_str(), stringify(_line.substr(7)).c_str());
-        //      emit({topic, stringify(_line.substr(7))});
       }
       _line.clear();
     } else {

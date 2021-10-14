@@ -77,7 +77,14 @@ extern "C" void app_main(void) {
 
 #ifdef GPS
   gps.init();  // no thread , driven from interrupt
-  gps.location >> spine.publisher<Location>("gps/latitude");
+  gps.location >> new SinkFunction<Location>([&](const Location& loc) {
+    CborSerializer toCbor(100);
+    Bytes payload =
+        toCbor.begin().add(loc.latitude).add(loc.longitude).end().toBytes();
+    if (toCbor.success())
+      spine._outgoing.on({spine._srcPrefix + "gps/location", payload});
+  });
+
   gps.satellitesInView >> spine.publisher<int>("gps/satellitesInView");
   gps.satellitesInUse >> spine.publisher<int>("gps/satellitesInUse");
 #endif
