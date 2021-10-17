@@ -43,11 +43,11 @@ class SerialSpine : Actor {
   static void onRxd(void *);
   SerialSpine(Thread &thr);
   ~SerialSpine();
-  void node(const char *);
   int init();
   int publish(std::string, Bytes &);
   int subscribe(std::string);
   int sendNode(std::string);
+  void setNode(const char *);
 
   template <typename T>
   Sink<T> &publisher(std::string topic) {

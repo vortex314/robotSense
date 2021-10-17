@@ -3,6 +3,5 @@ idf_component_register(SRCS
     UltraSonic.cpp
 INCLUDE_DIRS 
     . 
-    ../../../limero/inc  
 REQUIRES 
     "limero")

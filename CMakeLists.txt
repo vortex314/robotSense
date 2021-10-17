@@ -2,10 +2,8 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-set(WIFI_SSID $ENV{WIFI_SSID})
+set(WIFI_SSID $ENV{WIFI_SSID}) # copy from env
 set(WIFI_PASS $ENV{WIFI_PASS})
-set(ESPBAUD 921600) # doesn't work
-set(GPS 1)
 
 include_directories( main 
     components/limero 
@@ -13,7 +11,12 @@ include_directories( main
     components/gps 
     component/ultrasonic 
     $ENV{IDF_PATH}/components/cbor/tinycbor/src  )
-add_definitions(-DWIFI_PASS=${WIFI_PASS} -DWIFI_SSID=${WIFI_SSID} -DESP32_IDF -DMQTT_HOST=limero.ddns.net -DMQTT_PORT=1883 -DHOSTNAME=esp32)
+add_definitions(-DWIFI_PASS=${WIFI_PASS} 
+    -DWIFI_SSID=${WIFI_SSID} 
+    -DESP32_IDF 
+    -DGPS=1
+    -DSERIAL_BAUD=921600
+    -DHOSTNAME=esp32)
 # add_compile_options( -mtext-section-literals -ffunction-sections )
 
 # set(EXTRA_COMPONENT_DIRS /home/lieven/workspace/limero/esp32_idf)

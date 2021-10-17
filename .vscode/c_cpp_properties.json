@@ -22,7 +22,8 @@
                 "HOSTNAME=drive",
                 "COMMAND",
                 "MQTT_PORT=1883",
-                "GPS"
+                "GPS",
+                "SERIAL_BAUD=921600"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",

@@ -31,9 +31,9 @@ SerialSpine::SerialSpine(Thread &thr)
       _fromCbor(100),
       _loopbackTimer(thr, 1000, true, "loopbackTimer"),
       _connectTimer(thr, 3000, true, "connectTimer"),
-      outgoing(10, "outgoing"),
-      _incoming(5, "_incoming") {
-  node(Sys::hostname());
+      _incoming(5, "_incoming"),
+      outgoing(10, "outgoing") {
+  setNode(Sys::hostname());
   outgoing.async(thr);  // reduces stack need
   _incoming.async(thr);
   connected.async(thr);
@@ -41,7 +41,7 @@ SerialSpine::SerialSpine(Thread &thr)
 
 SerialSpine::~SerialSpine() {}
 
-void SerialSpine::node(const char *n) {
+void SerialSpine::setNode(const char *n) {
   node = n;
   srcPrefix = "src/" + node + "/";
   dstPrefix = "dst/" + node + "/";
@@ -50,7 +50,7 @@ void SerialSpine::node(const char *n) {
 };
 
 int SerialSpine::init() {
-  _uart.setClock(921600);
+  _uart.setClock(SERIAL_BAUD);
   _uart.onRxd(onRxd, this);
   _uart.mode("8N1");
   _uart.init();
