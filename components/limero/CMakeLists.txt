@@ -8,6 +8,5 @@ idf_component_register(SRCS
     INCLUDE_DIRS 
         . 
         ../../main  
-        ../../../etl/include 
     REQUIRES 
         "esp_adc_cal")

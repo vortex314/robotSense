@@ -6,6 +6,7 @@ set(WIFI_SSID $ENV{WIFI_SSID}) # copy from env
 set(WIFI_PASS $ENV{WIFI_PASS})
 
 include_directories( main 
+    json/single_include
     components/limero 
     components/spine 
     components/gps 
@@ -16,7 +17,8 @@ add_definitions(-DWIFI_PASS=${WIFI_PASS}
     -DESP32_IDF 
     -DGPS=1
     -DSERIAL_BAUD=921600
-    -DHOSTNAME=esp32)
+    -DHOSTNAME=esp32
+    -fno-exceptions )
 # add_compile_options( -mtext-section-literals -ffunction-sections )
 
 # set(EXTRA_COMPONENT_DIRS /home/lieven/workspace/limero/esp32_idf)

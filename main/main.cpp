@@ -16,7 +16,9 @@
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "nlohmann/json.hpp"
 #include "sdkconfig.h"
+using Json = nlohmann::json;
 
 Log logger(1024);
 // ---------------------------------------------- THREAD
@@ -77,18 +79,13 @@ extern "C" void app_main(void) {
 
 #ifdef GPS
   gps.init();  // no thread , driven from interrupt
-  gps.location >> new SinkFunction<Location>([&](const Location& loc) {
-    StaticJsonDocument<200> doc;
-    JsonArray array =  doc.to<JsonArray>();
-    array[0] = B_PUBLISH;
-    array[1] = spine.srcPrefix + "gps/location";
-    JsonObject obj = array.createNestedObject();
-    obj["lat"] = loc.latitude;
-    obj["lon"] = loc.longitude;
-    String line;
-    serializeJson(doc, line);
-    spine._toSerialFrame.on(line);
-  });
+  gps.location >>
+      new LambdaFlow<Location, Json>([&](Json& json, const Location& loc) {
+        json["lon"] = loc.longitude;
+        json["lat"] = loc.latitude;
+        return true;
+      }) >>
+      spine.publisher<Json>("gps/location");
 
   gps.satellitesInView >> spine.publisher<int>("gps/satellitesInView");
   gps.satellitesInUse >> spine.publisher<int>("gps/satellitesInUse");

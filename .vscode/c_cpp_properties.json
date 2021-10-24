@@ -8,7 +8,7 @@
                 "${workspaceFolder}/components/spine",
                 "${workspaceFolder}/../etl/include",
                 "${workspaceFolder}/../limero/esp32_idf",
-                "${workspaceFolder}/../ArduinoJson/src/",
+                "${workspaceFolder}/json/single_include/",
                 "${HOME}/esp/esp-idf/components/**",
                 "${HOME}/esp/esp-idf/components/freertos/include/freertos/",
                 "${HOME}/esp/xtensa-esp32-elf/**",
