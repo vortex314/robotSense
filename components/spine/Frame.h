@@ -4,7 +4,7 @@
 #include <ppp_frame.h>
 //#include <broker_protocol.h>
 //================================================================
-class BytesToFrame : public Flow<Bytes, Bytes>
+class BytesToFrame : public Flow<Bytes, String>
 {
   Bytes _inputFrame;
   Bytes _cleanData;
@@ -12,15 +12,15 @@ class BytesToFrame : public Flow<Bytes, Bytes>
   uint32_t _frameTimeout = 1000;
 
 public:
-  ValueFlow<Bytes> logs;
+  ValueFlow<String> logs;
   BytesToFrame();
   void on(const Bytes &bs);
-  void toStdout(const Bytes &bs);
+  void toStdout(const String &bs);
   bool handleFrame(const Bytes &bs);
   void handleRxd(const Bytes &bs);
   void request();
 };
-class FrameToBytes : public LambdaFlow<Bytes, Bytes>
+class FrameToBytes : public LambdaFlow<String, Bytes>
 {
 public:
   FrameToBytes();

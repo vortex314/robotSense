@@ -7,7 +7,7 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 
-#include <SerialSpine.h>
+#include <SerialSpineJson.h>
 #include <limero.h>
 #include <stdio.h>
 
@@ -46,8 +46,8 @@ UltraSonic ultrasonic(workerThread, uextUs);
 
 #ifdef GPS
 #include <Neo6m.h>
-Uext uext1Gps(1);
-Neo6m gps(thisThread, &uext1Gps);
+Uext uext1(1);
+Neo6m gps(thisThread, &uext1);
 #endif
 
 extern "C" void app_main(void) {
@@ -78,11 +78,16 @@ extern "C" void app_main(void) {
 #ifdef GPS
   gps.init();  // no thread , driven from interrupt
   gps.location >> new SinkFunction<Location>([&](const Location& loc) {
-    static CborSerializer toCbor(100);
-    Bytes payload =
-        toCbor.begin().add(loc.latitude).add(loc.longitude).end().toBytes();
-    if (toCbor.success())
-      spine.outgoing.on({spine.srcPrefix + "gps/location", payload});
+    StaticJsonDocument<200> doc;
+    JsonArray array =  doc.to<JsonArray>();
+    array[0] = B_PUBLISH;
+    array[1] = spine.srcPrefix + "gps/location";
+    JsonObject obj = array.createNestedObject();
+    obj["lat"] = loc.latitude;
+    obj["lon"] = loc.longitude;
+    String line;
+    serializeJson(doc, line);
+    spine._toSerialFrame.on(line);
   });
 
   gps.satellitesInView >> spine.publisher<int>("gps/satellitesInView");
