@@ -787,8 +787,8 @@ public:
      uart_enable_pattern_det_intr(_uartNum, '\n', 1, 10000, 10, 10);
      uart_pattern_queue_reset(_uartNum, 20);*/
     std::string taskName = stringFormat( "uart_event_task_%d", _driver);
-    xTaskCreate(uart_event_task, taskName.c_str(), 3120, this,
-                /*tskIDLE_PRIORITY + 5*/20, &_taskHandle);
+    xTaskCreate(uart_event_task, taskName.c_str(), 5120, this,
+                /*tskIDLE_PRIORITY + 5*/20, &_taskHandle); // increased to 5120 
     return 0;
   }
 

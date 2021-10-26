@@ -59,7 +59,7 @@ extern "C" void app_main(void) {
 
   SerialSpine spine(workerThread);
   spine.init();
-
+  ;
   INFO("%s : %s ", systemHostname().c_str(), systemBuild().c_str());
   //-----------------------------------------------------------------  SYS props
   poller >> systemUptime >> spine.publisher<uint64_t>("system/uptime");

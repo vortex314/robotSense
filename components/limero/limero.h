@@ -623,7 +623,8 @@ class QueueFlow : public Flow<T, T>, public Invoker, public Named {
       else
         WARN("QueueFlow '%s' push failed", name());
     } else {
-      this->emit(t);
+      WARN("QueueFlow '%s' no thread found", name());
+      // this->emit(t);
     }
   }
   void request() { invoke(); }
@@ -632,7 +633,7 @@ class QueueFlow : public Flow<T, T>, public Invoker, public Named {
     if (_queue.pop(value))
       this->emit(value);
     else
-      WARN(" no data ");
+      WARN(" no data in queue ");
   }
 
   void async(Thread &thread) { _thread = &thread; }

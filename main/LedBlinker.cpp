@@ -10,7 +10,7 @@ LedBlinker::LedBlinker(Thread& thr, uint32_t pin, uint32_t delay)
   });
 
   blinkSlow >> [&](bool flag) {
-    INFO(" blink %s", flag ? "slow" : "fast");
+  //  INFO(" blink %s", flag ? "slow" : "fast");
     if (flag)
       blinkTimer.interval(BLINK_SLOW_INTERVAL);
     else

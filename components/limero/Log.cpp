@@ -25,8 +25,7 @@ void bytesToHex(std::string &ret, uint8_t *input, uint32_t length, char sep) {
 
 void Log::serialLog(char *start, uint32_t length) {
   *(start + length) = '\0';
-  fprintf(stdout, "%s\n", start);
-  fflush(stdout);
+  ::printf("%s\n", start);
 }
 
 Log::Log(uint32_t size)
