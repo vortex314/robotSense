@@ -5,8 +5,8 @@
 
 #include "driver/gpio.h"
 
-#define BLINK_SLOW_INTERVAL 1000
-#define BLINK_FAST_INTERVAL 100
+#define BLINK_SLOW_INTERVAL 500
+#define BLINK_FAST_INTERVAL 50
 
 class LedBlinker : public Actor {
   uint32_t _pin;

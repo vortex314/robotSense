@@ -1,7 +1,5 @@
 idf_component_register(SRCS 
-        limero.cpp 
         Sys.cpp 
-        Log.cpp 
         Sema.cpp 
         Hardware.cpp
         logger.cpp

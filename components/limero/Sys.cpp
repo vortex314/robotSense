@@ -13,13 +13,13 @@ uint64_t Sys::_boot_time = 0;
 
 #include <chrono>
 
-uint64_t Sys::millis()  // time in msec since boot, only increasing
+uint64_t Sys::millis() // time in msec since boot, only increasing
 {
   using namespace std::chrono;
   milliseconds ms =
       duration_cast<milliseconds>(system_clock::now().time_since_epoch());
   Sys::_upTime =
-      ms.count();  // system_clock::now().time_since_epoch().count() / 1000000;
+      ms.count(); // system_clock::now().time_since_epoch().count() / 1000000;
   return _upTime;
 }
 
@@ -30,7 +30,8 @@ void Sys::hostname(const char *hostname) {
 }
 
 const char *Sys::hostname() {
-  if (_hostname[0] == 0) Sys::init();
+  if (_hostname[0] == 0)
+    Sys::init();
   return _hostname;
 }
 
@@ -83,7 +84,8 @@ void Sys::init() {
   macInt = 0L;
   if (esp_read_mac(macBytes, ESP_MAC_WIFI_STA) != ESP_OK)
     WARN(" esp_base_mac_addr_get() failed.");
-  hn = stringFormat("ESP32-%d", macInt & 0xFFFF);
+  hn = "ESP32-";
+  hn += std::to_string(macInt & 0xFFFF);
   Sys::hostname(hn.c_str());
 }
 

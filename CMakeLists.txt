@@ -11,14 +11,19 @@ include_directories( main
     components/spine 
     components/gps 
     component/ultrasonic 
+    ../common
     $ENV{IDF_PATH}/components/cbor/tinycbor/src  )
+
 add_definitions(-DWIFI_PASS=${WIFI_PASS} 
     -DWIFI_SSID=${WIFI_SSID} 
     -DESP32_IDF 
-    -DGPS=1
     -DSERIAL_BAUD=921600
     -DHOSTNAME=esp32
-    -fno-exceptions )
+    -fexceptions
+    ) # was no-exceptions 
+
+# add_compile_options("-fexceptions")
+
 # add_compile_options( -mtext-section-literals -ffunction-sections )
 
 # set(EXTRA_COMPONENT_DIRS /home/lieven/workspace/limero/esp32_idf)
