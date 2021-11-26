@@ -111,6 +111,7 @@ void Wifi::connectToAP(const char *ssid) {
   CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
   esp_wifi_connect();
+  esp_wifi_set_ps (WIFI_PS_NONE);
 }
 
 bool Wifi::scanDoneHandler() {

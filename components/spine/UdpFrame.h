@@ -55,8 +55,8 @@ class UdpFrame : public Actor {
 
   char rx_buffer[128];
   int ip_protocol = 0;
-  struct sockaddr_in6 dest_addr;
-  int sock;
+  struct sockaddr_in dest_addr;
+  int socket;
 
   UdpFrame(Thread &thread);
   bool init();
@@ -66,6 +66,7 @@ class UdpFrame : public Actor {
   void createSocket();
   void closeSocket();
   void waitForData();
+  void sendData(const Bytes &, const char *dstAddress);
 };
 
 #endif /* SRC_UART_H_ */

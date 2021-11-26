@@ -4,9 +4,6 @@
 			"path": "."
 		},
 		{
-			"path": "../limero"
-		},
-		{
 			"path": "../common"
 		}
 	],
@@ -80,7 +77,11 @@
 			"*.ipp": "cpp",
 			"*.inc": "cpp",
 			"*.contiki": "cpp",
-			"*.def": "cpp"
+			"*.def": "cpp",
+			"regex": "cpp",
+			"cfenv": "cpp",
+			"typeindex": "cpp",
+			"variant": "cpp"
 		}
 	}
 }
