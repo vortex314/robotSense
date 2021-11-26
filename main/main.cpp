@@ -9,6 +9,7 @@
 
 #include <Hardware.h>
 #include <Spine.h>
+#include <driver/uart.h>
 #include <limero.h>
 #include <stdio.h>
 
@@ -18,7 +19,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
-#include <driver/uart.h>
 
 // ---------------------------------------------- THREAD
 Thread thisThread("main");
@@ -52,11 +52,55 @@ Uext uext1(1);
 Neo6m gps(thisThread, &uext1);
 #endif
 */
+
+//#define SERIAL_SPINE
+
+#ifdef SERIAL_SPINE
 #include <SerialFrame.h>
 #include <Spine.h>
+
 Spine spine(workerThread);
 UART &uartUsb(UART::create(UART_NUM_0, 1, 3));
 SerialFrame serialFrame(workerThread, uartUsb);
+
+void initSpine() {
+  spine.init();
+  serialFrame.init();
+  Log::setLogWriter(uartSendBytes);
+  serialFrame.rxdFrame >> spine.rxdFrame;
+  spine.txdFrame >> serialFrame.txdFrame;
+}
+#else
+#include <UdpFrame.h>
+#include <Wifi.h>
+
+#include "esp_system.h"
+#include "esp_wifi.h"
+#include "nvs.h"
+#include "nvs_flash.h"
+Spine spine(workerThread);
+Wifi wifi(workerThread);
+UdpFrame udpFrame(workerThread);
+nvs_handle _nvs = 0;
+
+void initSpine() {
+  if (_nvs != 0) return;
+  esp_err_t err = nvs_flash_init();
+  if (err == ESP_ERR_NVS_NO_FREE_PAGES ||
+      err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    ESP_ERROR_CHECK(nvs_flash_erase());
+    err = nvs_flash_init();
+  }
+
+  spine.init();
+  wifi.init();
+  udpFrame.init();
+  wifi.connected >> udpFrame.online;
+  udpFrame.rxdFrame >> spine.rxdFrame;
+  spine.txdFrame >> udpFrame.txdFrame;
+}
+
+#endif
 
 extern "C" void app_main(void) {
 #ifdef HOSTNAME
@@ -64,19 +108,15 @@ extern "C" void app_main(void) {
 #endif
   INFO("%s : %s ", systemHostname().c_str(), systemBuild().c_str());
 
-  serialFrame.init();
-  spine.init();
   led.init();
-
-  serialFrame.rxdFrame >> spine.rxdFrame;
-  spine.txdFrame >> serialFrame.txdFrame;
+  initSpine();
   spine.connected >> led.blinkSlow;
   spine.connected >> [&](const bool &b) {
     static bool prevState = false;
-    if (b != prevState)
-      INFO(" connected : %s", b ? "true" : "false");
+    if (b != prevState) INFO(" connected : %s", b ? "true" : "false");
     prevState = b;
   };
+  spine.txdFrame >> [&](const Bytes &bs) { INFO("txd %d ", bs.size()); };
 
   //-----------------------------------------------------------------  SYS props
   spine.connected >> poller.connected;
@@ -92,7 +132,7 @@ extern "C" void app_main(void) {
   ultrasonic.distance >> spine.publisher<int32_t>("us/distance");
 */
 #ifdef GPS
-  gps.init(); // no thread , driven from interrupt
+  gps.init();  // no thread , driven from interrupt
   gps.location >>
       new LambdaFlow<Location, Json>([&](Json &json, const Location &loc) {
         json["lon"] = loc.longitude;
@@ -108,7 +148,7 @@ extern "C" void app_main(void) {
     ledThread.start();
     spineThread.start();
     workerThread.start();
-    thisThread.run(); // DON'T EXIT , local variable will be destroyed
+    thisThread.run();  // DON'T EXIT , local variable will be destroyed
   } catch (const char *msg) {
     ERROR("EXCEPTION => %s", msg);
     while (1) {

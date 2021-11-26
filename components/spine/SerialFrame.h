@@ -44,6 +44,6 @@ public:
   void sendFrame(const Bytes &bs);
 };
 
-extern "C" void uartSendBytes(uint8_t *, size_t, int retries);
+extern "C" void uartSendBytes(uint8_t *, size_t);
 
 #endif /* SRC_UART_H_ */

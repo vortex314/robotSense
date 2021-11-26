@@ -76,7 +76,7 @@ void SerialFrame::sendBytes(uint8_t *data, size_t length) {
   _uart.write(data, length);
 }
 
-extern "C" void uartSendBytes(uint8_t *data, size_t length, int retries) {
+extern "C" void uartSendBytes(uint8_t *data, size_t length) {
   if (_serialFrame)
     _serialFrame->sendBytes(data, length);
 }
