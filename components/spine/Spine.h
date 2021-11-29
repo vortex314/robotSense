@@ -13,8 +13,8 @@
 #include "limero.h"
 
 typedef enum {
-  B_PUBLISH,   // RXD,TXD id , Bytes value
-  B_SUBSCRIBE, // TXD id, string, qos,
+  B_PUBLISH,    // RXD,TXD id , Bytes value
+  B_SUBSCRIBE,  // TXD id, string, qos,
   B_UNSUBSCRIBE,
   B_NODE,
   B_LOG
@@ -33,7 +33,7 @@ class Spine : public Actor {
   TimerSource _loopbackTimer;
   TimerSource _connectTimer;
 
-public:
+ public:
   ValueFlow<Bytes> rxdFrame;
   ValueFlow<Bytes> txdFrame;
   ValueFlow<CborReader> cborIn;
@@ -47,7 +47,8 @@ public:
   void sendNode(const char *topic);
   void setNode(const char *);
 
-  template <typename T> void publish(const char *topic, T v) {
+  template <typename T>
+  void publish(const char *topic, T v) {
     if (_cborWriter.reset()
             .array()
             .add(B_PUBLISH)
@@ -61,14 +62,15 @@ public:
       WARN(" CBOR serialization failed ");
   }
 
-  template <typename T> Sink<T> &publisher(std::string topic) {
+  template <typename T>
+  Sink<T> &publisher(std::string topic) {
     std::string absTopic = srcPrefix + topic;
     if (topic.rfind("src/", 0) == 0 || topic.rfind("dst/", 0) == 0)
       absTopic = topic;
     SinkFunction<T> *sf = new SinkFunction<T>([&, absTopic](const T &t) {
       CborWriter cborWriter(100);
       // need a local copy as the thread can be different
-      //      INFO("topic:%s", absTopic.c_str());
+//      INFO("topic:%s", absTopic.c_str());
       if (cborWriter.reset()
               .array()
               .add(B_PUBLISH)
@@ -77,7 +79,7 @@ public:
               .close()
               .addCrc()
               .ok()) {
-        txdFrame.on(_cborWriter.bytes());
+        txdFrame.on(cborWriter.bytes());
       } else {
         WARN(" CBOR serialization failed ");
       }
@@ -85,7 +87,8 @@ public:
     return *sf;
   }
 
-  template <typename T> Source<T> &subscriber(std::string topic) {
+  template <typename T>
+  Source<T> &subscriber(std::string topic) {
     std::string absTopic = dstPrefix + topic;
     if (topic.rfind("src/", 0) == 0 || topic.rfind("dst/", 0) == 0)
       absTopic = topic;

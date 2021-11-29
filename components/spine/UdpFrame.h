@@ -32,28 +32,23 @@
 #define PPP_FLAG_CHAR 0x7E
 
 #define FRAME_MAX 128
+#define PORT 9999
+
 
 class UdpFrame : public Actor {
-  Bytes _frameRxd;
-  bool escFlag = false;
-  size_t _wrPtr, _rdPtr;
-  static void onRxd(void *);
-
- public:
   char addr_str[128];
   int addr_family;
   volatile bool crcDMAdone;
   uint32_t _txdOverflow = 0;
   uint32_t _rxdOverflow = 0;
-
+ public:
   QueueFlow<Bytes> rxdFrame;
   SinkFunction<Bytes> txdFrame;
-  ValueFlow<Bytes> txd;
+ // ValueFlow<Bytes> txd;
   ValueFlow<bool> online;
 
-#define PORT 9999
 
-  char rx_buffer[128];
+  char _rxdBuffer[FRAME_MAX];
   int ip_protocol = 0;
   struct sockaddr_in dest_addr;
   int socket;
@@ -61,7 +56,7 @@ class UdpFrame : public Actor {
   UdpFrame(Thread &thread);
   bool init();
   void rxdByte(uint8_t);
-  void sendBytes(uint8_t *, size_t);
+  void start();
   void sendFrame(const Bytes &bs);
   void createSocket();
   void closeSocket();

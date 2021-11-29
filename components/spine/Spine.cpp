@@ -44,13 +44,13 @@ void Spine::init() {
   _loopbackTimer >> [&](const TimerMsg &tm) {
     if (!connected())
       sendNode(node.c_str());
-    publish(_loopbackTopic.c_str(), Sys::millis());
+    publish(_loopbackTopic.c_str(), Sys::micros());
   };
 
   _connectTimer >> [&](const TimerMsg &) { connected = false; };
 
   subscriber<uint64_t>(_loopbackTopic) >> [&](const uint64_t &in) {
-    publish(_latencyTopic.c_str(), (Sys::millis() - in) * 1000);
+    publish(_latencyTopic.c_str(), (Sys::micros() - in) );
     connected = true;
     _connectTimer.reset();
   };
