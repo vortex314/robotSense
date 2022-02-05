@@ -4,15 +4,16 @@ cmake_minimum_required(VERSION 3.5)
 
 set(WIFI_SSID $ENV{WIFI_SSID}) # copy from env
 set(WIFI_PASS $ENV{WIFI_PASS})
+set(ESPPORT /dev/ttyUSB0)
+set(COMPONENTS /home/lieven/workspace/components )
 
 include_directories( main 
+    ${COMPONENTS}/inc
     json/single_include
-    components/limero 
-    components/spine 
     components/gps 
     component/ultrasonic 
     ../common
-    $ENV{IDF_PATH}/components/cbor/tinycbor/src  )
+    ../tinycbor/src  )
 
 add_definitions(-DWIFI_PASS=${WIFI_PASS} 
     -DWIFI_SSID=${WIFI_SSID} 

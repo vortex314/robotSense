@@ -1,9 +1,11 @@
 #include "UdpFrame.h"
 
-UdpFrame::UdpFrame(Thread &thread)
+UdpFrame::UdpFrame(Thread &thread, const char *serverIp, uint16_t port)
     : Actor(thread),
+      _serverIp(serverIp),
+      _serverPort(port),
       rxdFrame(5),
-      txdFrame([&](const Bytes &bs) { sendData(bs, "192.168.0.170"); }) {
+      txdFrame([&](const Bytes &bs) { sendData(bs, _serverIp.c_str()); }) {
   rxdFrame.async(thread);
 }
 
@@ -38,7 +40,7 @@ void UdpFrame::sendData(const Bytes &bs, const char *dst) {
   dstAddress.sin_port = htons(PORT);
   dstAddress.sin_family = AF_INET;
 
-  int err = sendto(socket, bs.data(), bs.size(), 0,
+  int err = sendto(_socket, bs.data(), bs.size(), 0,
                    (struct sockaddr *)&dstAddress, sizeof(dstAddress));
   if (err < 0 || err != bs.size()) {
     ERROR("Error occurred during sending: errno %d :  %s", errno,
@@ -51,21 +53,21 @@ void UdpFrame::createSocket() {
   BZERO(dest_addr);
   dest_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   dest_addr.sin_family = AF_INET;
-  dest_addr.sin_port = htons(PORT);
+  dest_addr.sin_port = htons(_serverPort);
   ip_protocol = IPPROTO_IP;
   addr_family = AF_INET;
-  socket = ::socket(addr_family, SOCK_DGRAM, ip_protocol);
-  if (socket < 0) {
+  _socket = ::socket(addr_family, SOCK_DGRAM, ip_protocol);
+  if (_socket < 0) {
     ERROR("Unable to create socket: errno %d", errno);
     return;
   }
   INFO("Socket created");
-  int err = bind(socket, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+  int err = bind(_socket, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
   if (err < 0) {
     ERROR("Socket unable to bind: errno %d : %s", errno, strerror(errno));
     return;
   }
-  INFO("Socket bound, port %d", PORT);
+  INFO("Socket bound, port %d", _serverPort);
 }
 
 void UdpFrame::waitForData() {
@@ -73,7 +75,7 @@ void UdpFrame::waitForData() {
   while (online()) {
     struct sockaddr_storage source_addr;  // Large enough for both IPv4 or IPv6
     socklen_t socklen = sizeof(source_addr);
-    int len = recvfrom(socket, _rxdBuffer, sizeof(_rxdBuffer) - 1, 0,
+    int len = recvfrom(_socket, _rxdBuffer, sizeof(_rxdBuffer) - 1, 0,
                        (struct sockaddr *)&source_addr, &socklen);
     if (len < 0) {
       ERROR("recvfrom failed: errno %d", errno);
@@ -85,9 +87,9 @@ void UdpFrame::waitForData() {
 }
 
 void UdpFrame::closeSocket() {
-  if (socket != -1) {
+  if (_socket != -1) {
     ERROR("Shutting down socket and restarting...");
-    shutdown(socket, 0);
-    close(socket);
+    shutdown(_socket, 0);
+    close(_socket);
   }
 }

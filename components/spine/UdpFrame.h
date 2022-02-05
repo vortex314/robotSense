@@ -34,26 +34,26 @@
 #define FRAME_MAX 128
 #define PORT 9999
 
-
 class UdpFrame : public Actor {
   char addr_str[128];
   int addr_family;
   volatile bool crcDMAdone;
   uint32_t _txdOverflow = 0;
   uint32_t _rxdOverflow = 0;
- public:
-  QueueFlow<Bytes> rxdFrame;
-  SinkFunction<Bytes> txdFrame;
- // ValueFlow<Bytes> txd;
-  ValueFlow<bool> online;
-
-
+  std::string _serverIp;
+  uint16_t _serverPort;
   char _rxdBuffer[FRAME_MAX];
   int ip_protocol = 0;
   struct sockaddr_in dest_addr;
-  int socket;
+  int _socket;
 
-  UdpFrame(Thread &thread);
+ public:
+  QueueFlow<Bytes> rxdFrame;
+  SinkFunction<Bytes> txdFrame;
+  // ValueFlow<Bytes> txd;
+  ValueFlow<bool> online;
+
+  UdpFrame(Thread &thread, const char *serverIp, uint16_t port);
   bool init();
   void rxdByte(uint8_t);
   void start();

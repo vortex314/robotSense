@@ -27,7 +27,7 @@ void Wifi::init() {
   if (esp_read_mac(macBytes, ESP_MAC_WIFI_STA) != ESP_OK)
     WARN(" esp_base_mac_addr_get() failed.");
   char macString[20];
-  sprintf(macString,"%02X:%02X:%02X:%02X:%02X:%02X", macBytes[5], macBytes[4],
+  sprintf(macString, "%02X:%02X:%02X:%02X:%02X:%02X", macBytes[5], macBytes[4],
           macBytes[3], macBytes[2], macBytes[1], macBytes[0]);
   macAddress = macString;
   mac = macInt;
@@ -111,7 +111,7 @@ void Wifi::connectToAP(const char *ssid) {
   CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
   esp_wifi_connect();
-  esp_wifi_set_ps (WIFI_PS_NONE);
+  esp_wifi_set_ps(WIFI_PS_NONE);  // no power save, keeps good ping latency
 }
 
 bool Wifi::scanDoneHandler() {

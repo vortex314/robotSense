@@ -83,7 +83,8 @@ void initSpine() {
 #include "nvs_flash.h"
 Spine spine(workerThread);
 Wifi wifi(workerThread);
-UdpFrame udpFrame(workerThread);
+Log logger;
+UdpFrame udpFrame(workerThread, "192.168.0.197", 9999);
 nvs_handle _nvs = 0;
 
 void initSpine() {
@@ -116,48 +117,30 @@ Thread adcThread(adcThreadProps);
 double adcAvg = 0;
 double adcSpread = 0;
 #define MAX_ADC_VALUE 4095
-#define BUCKET_COUNT 1024
-#define BUCKET_SIZE (MAX_ADC_VALUE / BUCKET_COUNT)
 
-uint32_t buckets[BUCKET_COUNT];
 uint32_t measurementCount = 0;
-
-void clearBuckets() {
-  for (uint32_t i = 0; i < BUCKET_COUNT; i++) buckets[i] = 0;
-  measurementCount = 0;
-}
-
-void addBucket(uint16_t value) {
-  // scale 0->1023 in buckets
-  int bucketIdx = value / BUCKET_SIZE;
-  buckets[bucketIdx]++;
-  measurementCount++;
-}
-void getBiggestBucket() {
-  uint32_t size = 0;
-  uint32_t bucketIdx = 0;
-  double weightedSum = 0;
-  int delta = 0;
-  for (uint32_t i = 0; i < BUCKET_COUNT; i++) {
-    if (size < buckets[i]) {
-      size = buckets[i];
-      bucketIdx = i;
-    };
-    delta = (i * BUCKET_SIZE) - 1935;
-    weightedSum += abs(delta) * buckets[i];
-  }
-  int v = bucketIdx * BUCKET_SIZE;
-  //  current = abs(v - 1935) / 0.3;
-  current = weightedSum / measurementCount;
-  INFO(" big %d : val : %d<->%d cnt : %d tot : %d abs : %f ", bucketIdx, v,
-       v + BUCKET_SIZE, buckets[bucketIdx], measurementCount, current);
-
-  // current : 1/1000 => 180 Ohm
+double sum;
+  // current transformer : 1/1000 
+  // burner resistor : 180 Ohm
   // 1A => 1mA => 180mV
   // scale == 4095 for 2450mV =>  1Bit == 2450 mv / 4096 = 0.6 mV
+  // zero is at 1935
   // 1 A = 180/0.6 = 300 binary per A
   // 1935 zero value
   // 5A => 1500 ==> 1935 + 1500 = 3400
+void clearBuckets() {
+  measurementCount = 0;
+  sum = 0;
+}
+
+void addMeasurement(uint16_t value) {
+  double current = (value - 1935) / 300.0;
+  sum += current * current;
+  measurementCount++;
+}
+
+double getCurrent() {
+  return  sqrt(sum / measurementCount);
 }
 
 void adcRun() {
@@ -168,10 +151,9 @@ void adcRun() {
     clearBuckets();
     uint64_t endTime = Sys::micros() + 1000000;
     while (Sys::micros() < endTime) {
-      uint32_t value = adcPwr.getValue();
-      addBucket(value);
+      addMeasurement(adcPwr.getValue());
     }
-    getBiggestBucket();
+    current  = getCurrent();
   };
   INFO("kickoff thread");
   adcThread.start();

@@ -4,3 +4,9 @@
 [submodule "json"]
 	path = json
 	url = https://github.com/nlohmann/json.git
+[submodule "tinycbor"]
+	path = tinycbor
+	url = https://github.com/intel/tinycbor
+[submodule "components/tinycbor"]
+	path = components/tinycbor
+	url = https://github.com/intel/tinycbor

@@ -6,7 +6,7 @@
                 "${workspaceFolder}/main",
                 "${workspaceFolder}/components/**",
                 "${workspaceFolder}/components/spine",
-                "${workspaceFolder}/../common",
+                "${workspaceFolder}/../components/inc",
                 "${HOME}/esp/esp-idf/components/**",
                 "${HOME}/esp/esp-idf/components/freertos/include/freertos/",
                 "${HOME}/esp/xtensa-esp32-elf/**",

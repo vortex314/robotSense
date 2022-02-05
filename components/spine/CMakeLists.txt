@@ -1,5 +1,6 @@
 idf_component_register(SRCS 
-        Spine.cpp 
+        ${COMPONENTS}/src/Spine.cpp 
+        ${COMPONENTS}/src/StringUtility.cpp 
         SerialFrame.cpp
         UdpFrame.cpp 
         Wifi.cpp

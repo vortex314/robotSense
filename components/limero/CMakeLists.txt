@@ -1,5 +1,4 @@
 idf_component_register(SRCS 
-        Sys.cpp 
         Sema.cpp 
         Hardware.cpp
         logger.cpp

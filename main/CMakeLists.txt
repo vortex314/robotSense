@@ -1,17 +1,16 @@
 idf_component_register(SRCS 
         main.cpp 
         LedBlinker.cpp 
-        ../../common/CborWriter.cpp 
-        ../../common/CborReader.cpp 
-        ../../common/Crc32.cpp
-        ../../common/Log.cpp
-        ../../common/limero.cpp
+        ${COMPONENTS}/src/CborWriter.cpp 
+        ${COMPONENTS}/src/CborReader.cpp 
+        ${COMPONENTS}/src/Crc32.cpp
+        ${COMPONENTS}/esp32/Log.cpp
+        ${COMPONENTS}/esp32/limero.cpp
+        ${COMPONENTS}/esp32/Sys.cpp
+
     INCLUDE_DIRS 
-        ../components/ultrasonic 
-        ../components/limero 
-        ../components/spine  
-        ../components/gps
+        ${COMPONENTS}/inc/
     REQUIRES 
-        "limero spine spi_flash  cbor")
+        "limero spine spi_flash tinycbor")
 
 # component_compile_options("-fexceptions")
