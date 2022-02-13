@@ -41,9 +41,68 @@ LambdaSource<bool> systemAlive([]() { return true; });
 Poller poller(spineThread);
 ValueFlow<double> current;
 
+#ifdef ADC
 Uext uext1(1);
 ADC &adcPwr = uext1.getADC(LP_RXD);
+#include <math.h>
+ThreadProperties adcThreadProps = {.name = "adcThread",
+                                   .stackSize = 5000,
+                                   .queueSize = 3,
+                                   .priority = tskIDLE_PRIORITY + 1};
 
+Thread adcThread(adcThreadProps);
+
+double adcAvg = 0;
+double adcSpread = 0;
+#define MAX_ADC_VALUE 4095
+
+uint32_t measurementCount = 0;
+double sum;
+// current transformer : 1/1000
+// burner resistor : 180 Ohm
+// 1A => 1mA => 180mV
+// scale == 4095 for 2450mV =>  1Bit == 2450 mv / 4096 = 0.6 mV
+// zero is at 1935
+// 1 A = 180/0.6 = 300 binary per A
+// 1935 zero value
+// 5A => 1500 ==> 1935 + 1500 = 3400
+void clearBuckets() {
+  measurementCount = 0;
+  sum = 0;
+}
+
+void addMeasurement(uint16_t value) {
+  double current = (value - 1935) / 300.0;
+  sum += current * current;
+  measurementCount++;
+}
+
+double getCurrent() { return sqrt(sum / measurementCount); }
+
+void adcRun() {
+  INFO("start");
+  TimerSource *adcTimer =
+      new TimerSource(adcThread, 2000, true, "receiverTimer");
+  *adcTimer >> [&](const TimerMsg &) {
+    clearBuckets();
+    uint64_t endTime = Sys::micros() + 1000000;
+    while (Sys::micros() < endTime) {
+      addMeasurement(adcPwr.getValue());
+    }
+    current = getCurrent();
+  };
+  INFO("kickoff thread");
+  adcThread.start();
+}
+#endif
+#define AS5600
+#ifdef AS5600
+#include <As5600.h>
+
+Uext uext1(1);
+As5600 as5600(uext1);
+
+#endif
 /*
 #include <UltraSonic.h>
 Uext uextUs(2);
@@ -106,58 +165,6 @@ void initSpine() {
 }
 
 #endif
-#include <math.h>
-ThreadProperties adcThreadProps = {.name = "adcThread",
-                                   .stackSize = 5000,
-                                   .queueSize = 3,
-                                   .priority = tskIDLE_PRIORITY + 1};
-
-Thread adcThread(adcThreadProps);
-
-double adcAvg = 0;
-double adcSpread = 0;
-#define MAX_ADC_VALUE 4095
-
-uint32_t measurementCount = 0;
-double sum;
-  // current transformer : 1/1000 
-  // burner resistor : 180 Ohm
-  // 1A => 1mA => 180mV
-  // scale == 4095 for 2450mV =>  1Bit == 2450 mv / 4096 = 0.6 mV
-  // zero is at 1935
-  // 1 A = 180/0.6 = 300 binary per A
-  // 1935 zero value
-  // 5A => 1500 ==> 1935 + 1500 = 3400
-void clearBuckets() {
-  measurementCount = 0;
-  sum = 0;
-}
-
-void addMeasurement(uint16_t value) {
-  double current = (value - 1935) / 300.0;
-  sum += current * current;
-  measurementCount++;
-}
-
-double getCurrent() {
-  return  sqrt(sum / measurementCount);
-}
-
-void adcRun() {
-  INFO("start");
-  TimerSource *adcTimer =
-      new TimerSource(adcThread, 2000, true, "receiverTimer");
-  *adcTimer >> [&](const TimerMsg &) {
-    clearBuckets();
-    uint64_t endTime = Sys::micros() + 1000000;
-    while (Sys::micros() < endTime) {
-      addMeasurement(adcPwr.getValue());
-    }
-    current  = getCurrent();
-  };
-  INFO("kickoff thread");
-  adcThread.start();
-}
 
 extern "C" void app_main(void) {
 #ifdef HOSTNAME
@@ -165,10 +172,8 @@ extern "C" void app_main(void) {
 #endif
   INFO("%s : %s ", systemHostname().c_str(), systemBuild().c_str());
 
-  adcPwr.init();
   led.init();
   initSpine();
-  adcRun();
   spine.connected >> led.blinkSlow;
   spine.connected >> [&](const bool &b) {
     static bool prevState = false;
@@ -177,6 +182,10 @@ extern "C" void app_main(void) {
   };
   // spine.txdFrame >> [&](const Bytes &bs) { INFO("txd %d ", bs.size()); };
 
+#ifdef ADC
+  adcPwr.init();
+  adcRun();
+#endif
   //-----------------------------------------------------------------  SYS props
   spine.connected >> poller.connected;
   poller.interval = 1000;
@@ -192,7 +201,15 @@ extern "C" void app_main(void) {
   ultrasonic.init();
   ultrasonic.distance >> spine.publisher<int32_t>("us/distance");
 */
-#ifdef GPS
+#ifdef AS5600
+  as5600.init();
+  TimerSource ticker(spineThread, 1000, true, "ticker");
+  ticker >> new LambdaFlow<TimerMsg,int>([&](int &out, const TimerMsg &) {
+    out = as5600.degrees();
+    return true;
+  }) >> spine.publisher<int>("steer/angle");
+#endif
+/* #ifdef GPS
   gps.init();  // no thread , driven from interrupt
   gps.location >>
       new LambdaFlow<Location, Json>([&](Json &json, const Location &loc) {
@@ -204,14 +221,8 @@ extern "C" void app_main(void) {
 
   gps.satellitesInView >> spine.publisher<int>("gps/satellitesInView");
   gps.satellitesInUse >> spine.publisher<int>("gps/satellitesInUse");
-#endif
-  try {
-    spineThread.start();
-    workerThread.start();
-    thisThread.run();  // DON'T EXIT , local variable will be destroyed
-  } catch (const char *msg) {
-    ERROR("EXCEPTION => %s", msg);
-    while (1) {
-    };
-  }
+#endif */
+  spineThread.start();
+  workerThread.start();
+  thisThread.run();  // DON'T EXIT , local variable will be destroyed
 }

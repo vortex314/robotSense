@@ -1,7 +1,6 @@
 idf_component_register(SRCS 
         Sema.cpp 
         Hardware.cpp
-        logger.cpp
     INCLUDE_DIRS 
         . 
         ../../main  

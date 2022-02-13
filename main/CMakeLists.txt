@@ -11,6 +11,6 @@ idf_component_register(SRCS
     INCLUDE_DIRS 
         ${COMPONENTS}/inc/
     REQUIRES 
-        "limero spine spi_flash tinycbor")
+        "limero spine spi_flash tinycbor as5600")
 
 # component_compile_options("-fexceptions")

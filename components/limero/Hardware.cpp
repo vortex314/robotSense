@@ -229,6 +229,7 @@ int I2C_ESP32::init() {
   conf.scl_io_num = (gpio_num_t)_scl;
   conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
   conf.master.clk_speed = _clock;
+  conf.clk_flags=0;
   esp_err_t erc = i2c_param_config(_port, &conf);
   if (erc) WARN("i2c_param_config() : %d", erc);
   erc = i2c_driver_install(_port, conf.mode, 0, 0, 0);
